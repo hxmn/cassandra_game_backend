@@ -11,7 +11,7 @@ from db import clean_db, init_db, backend
 from db.backend import date2str
 
 N_PLAYERS = 10
-N_SESSIONS = 10
+N_SESSIONS = 25 # no more than 20 sessions
 COUNTRIES = ["AA", "BB"]
 LAST_HOURS = 5
 
@@ -79,14 +79,16 @@ def test_get_last_sessions(client):
     js = resp.json
 
     assert resp.status == falcon.HTTP_200
-    assert len(js['AA']) + len(js['BB']) == (LAST_HOURS - 1) * N_SESSIONS
+    assert len(js['AA']) + len(js['BB']) == (LAST_HOURS - 1) * N_PLAYERS
 
 @pytest.mark.run(order=1)
 def test_get_complete_sessions(client, players_and_sessions):
     complete_sessions = 0
     for player_id in players_and_sessions.keys():
-        resp = client.simulate_get('/last_complete_sessions', params={'player_id': player_id})
+        resp = client.simulate_get('/last_complete_sessions',
+                                   params={'player_id': player_id})
         js = resp.json
         complete_sessions += len(js)
 
-    assert N_PLAYERS * (N_SESSIONS - 2) == complete_sessions
+    sessions = 22 if N_SESSIONS > 22 else N_SESSIONS # we are getting only 20 complete sessions
+    assert N_PLAYERS * (sessions - 2) == complete_sessions
