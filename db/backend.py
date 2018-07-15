@@ -9,7 +9,16 @@ import json
 
 RFC3339_NO_FRACTION_NO_ZULU = '%Y-%m-%dT%H:%M:%S'
 
-NOW = datetime.strptime('2016-12-02T15:00:00', RFC3339_NO_FRACTION_NO_ZULU)
+
+def str2date(date_str: str) -> datetime:
+    return datetime.strptime(date_str, RFC3339_NO_FRACTION_NO_ZULU)
+
+
+def date2str(date: datetime) -> str:
+    return date.strftime(RFC3339_NO_FRACTION_NO_ZULU)
+
+
+NOW = str2date('2016-12-02T15:00:00')
 
 
 class Backend:
@@ -64,10 +73,12 @@ class Backend:
         batch_sessions, batch_completes = BatchStatement(), BatchStatement()
 
         for js_str in payload:
+            if len(js_str) == 0:
+                continue
             js = json.loads(js_str)
             session_id = UUID(js['session_id'])
             player_id = UUID(js['player_id'])
-            ts = datetime.strptime(js['ts'], RFC3339_NO_FRACTION_NO_ZULU)
+            ts = str2date(js['ts'])
 
             if js['event'] == 'start':
                 batch_sessions.add(self.insert_start, (session_id, player_id, js['country'], ts))
@@ -89,10 +100,10 @@ class Backend:
         for row in rows:
             if row.country not in result.keys():
                 result[row.country] = []
-            result[row.country].append(row.start.strftime(RFC3339_NO_FRACTION_NO_ZULU))
+            result[row.country].append(date2str(row.start))
         return result
 
     def last_complete_sessions(self, player_id: str, num_sessions=20) -> List[str]:
-        rows = self.session.execute(self.select_last_complete_sessions, (player_id, num_sessions))
-        sessions = [row.session_id for row in rows]
+        rows = self.session.execute(self.select_last_complete_sessions, (UUID(player_id), num_sessions))
+        sessions = [str(row.session_id) for row in rows]
         return sessions
