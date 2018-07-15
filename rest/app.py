@@ -7,7 +7,12 @@ from db.backend import Backend
 
 backend = Backend(session=get_session(init=True))
 
+
 class LoadEvents(object):
+    """
+        Endpoint for receiving batches (1-10 events / batch)
+    """
+
     def on_post(self, req, res):
         body = req.stream.read()
         if not body:
@@ -21,6 +26,10 @@ class LoadEvents(object):
 
 
 class GetSessionStartsForLastHours(object):
+    """
+        Endpoint for getting session starts
+    """
+
     def on_get(self, req, res):
         hours = int(req.params['hours'])
         starts_by_country = backend.session_starts_for_last_hours(hours)
@@ -29,6 +38,10 @@ class GetSessionStartsForLastHours(object):
 
 
 class GetLastCompleteSessionsByPlayer(object):
+    """
+        Endpoint for getting complete sessions
+    """
+
     def on_get(self, req, res):
         player_id = req.params['player_id']
         sessions = backend.last_complete_sessions(player_id)
@@ -41,7 +54,7 @@ app.add_route('/load_events', LoadEvents())
 app.add_route('/last_hours_session_starts', GetSessionStartsForLastHours())
 app.add_route('/last_complete_sessions', GetLastCompleteSessionsByPlayer())
 
-
+# Executor for local tests. In production it served by gunicorn with configuration in docker-compose
 if __name__ == '__main__':
     httpd = simple_server.make_server('127.0.0.1', 18080, app)
     httpd.serve_forever()

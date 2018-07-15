@@ -18,6 +18,7 @@ def date2str(date: datetime) -> str:
     return date.strftime(RFC3339_NO_FRACTION_NO_ZULU)
 
 
+# To resolve a problem with outdated data
 NOW = str2date('2016-12-02T15:00:00')
 
 
@@ -99,6 +100,11 @@ class Backend:
         return num_statements
 
     def session_starts_for_last_hours(self, hours: int) -> dict:
+        """
+            Cassandra query for getting session starts
+        :param hours: Number of last hours
+        :return: dictionary where key is country and value is list of session starts timestamps
+        """
         from_date = NOW - timedelta(hours=hours)
         result = {}
 
@@ -110,6 +116,12 @@ class Backend:
         return result
 
     def last_complete_sessions(self, player_id: str, num_sessions=20) -> List[str]:
+        """
+            Cassandra query for getting complete sessions
+        :param player_id: a player id
+        :param num_sessions: number of sessions to fetch (default: 20)
+        :return: list of session id strings
+        """
         rows = self.session.execute(self.select_last_complete_sessions, (UUID(player_id), num_sessions))
         sessions = [str(row.session_id) for row in rows]
         return sessions

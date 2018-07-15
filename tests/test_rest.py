@@ -15,16 +15,17 @@ N_SESSIONS = 25
 COUNTRIES = ["AA", "BB"]
 LAST_HOURS = 5
 
-
+# Create keyspace
 def setup_module():
     init_db()
     backend.NOW = datetime.now()
 
-
+# Destroy keyspace after all tests done
 def teardown_module():
     clean_db()
 
 
+# Test data
 @pytest.fixture(scope='module')
 def players_and_sessions(num_players=N_PLAYERS, num_sessions=N_SESSIONS):
     players = {}
@@ -36,6 +37,7 @@ def players_and_sessions(num_players=N_PLAYERS, num_sessions=N_SESSIONS):
     return players
 
 
+# Falcon client
 @pytest.fixture(scope='module')
 def client():
     from rest.app import app
