@@ -11,7 +11,7 @@ from db import clean_db, init_db, backend
 from db.backend import date2str
 
 N_PLAYERS = 10
-N_SESSIONS = 25 # no more than 20 sessions
+N_SESSIONS = 25
 COUNTRIES = ["AA", "BB"]
 LAST_HOURS = 5
 

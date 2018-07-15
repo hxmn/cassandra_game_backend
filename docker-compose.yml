@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+
+  cassandra:
+     hostname: cassandra
+     image: cassandra:latest
+     expose:
+       - 9042
+     networks:
+      - intranet
+     ulimits:
+       memlock: -1
+       nproc: 32768
+       nofile: 100000
+
+  rest:
+    restart: on-failure
+    build:
+      context: .
+    environment:
+      - CASSANDRA_HOST=cassandra
+    ports:
+      - 18080
+    networks:
+      - intranet
+    command: /bin/bash -c "sleep 30 && python -m db && gunicorn -w 2 -b 0.0.0.0:18080 rest.app:app "
+    depends_on:
+      - cassandra
+
+networks:
+  intranet:

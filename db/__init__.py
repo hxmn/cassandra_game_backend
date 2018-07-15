@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from cassandra.cluster import Cluster, Session
@@ -5,7 +6,11 @@ from cassandra.metadata import InvalidRequest
 
 KEYSPACE = 'game'
 
-_cluster = Cluster()
+CASSANDRA_HOST = os.environ['CASSANDRA_HOST']
+if not CASSANDRA_HOST:
+    CASSANDRA_HOST = 'localhost'
+
+_cluster = Cluster([CASSANDRA_HOST])
 _session = _cluster.connect()
 
 
@@ -61,8 +66,3 @@ def clean_db():
     _session.execute("""
         DROP KEYSPACE %s    
     """ % KEYSPACE)
-
-
-if __name__ == '__main__':
-    init_db()
-    print('Keyspace %s is initialized.' % KEYSPACE)
