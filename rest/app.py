@@ -41,6 +41,7 @@ app.add_route('/load_events', LoadEvents())
 app.add_route('/last_hours_session_starts', GetSessionStartsForLastHours())
 app.add_route('/last_complete_sessions', GetLastCompleteSessionsByPlayer())
 
+
 if __name__ == '__main__':
     httpd = simple_server.make_server('127.0.0.1', 18080, app)
     httpd.serve_forever()

@@ -6,9 +6,7 @@ from cassandra.metadata import InvalidRequest
 
 KEYSPACE = 'game'
 
-CASSANDRA_HOST = os.environ['CASSANDRA_HOST']
-if not CASSANDRA_HOST:
-    CASSANDRA_HOST = 'localhost'
+CASSANDRA_HOST = os.getenv('CASSANDRA_HOST', 'localhost')
 
 _cluster = Cluster([CASSANDRA_HOST])
 _session = _cluster.connect()
