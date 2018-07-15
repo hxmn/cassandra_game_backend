@@ -1,29 +1,38 @@
-from cassandra.cluster import Cluster
+from typing import Optional
+
+from cassandra.cluster import Cluster, Session
 from cassandra.metadata import InvalidRequest
 
 KEYSPACE = 'game'
 
-cluster = Cluster()
-session = cluster.connect()
+_cluster = Cluster()
+_session = _cluster.connect()
 
-try:
-    session.set_keyspace(KEYSPACE)
-except InvalidRequest:
-    print('Key space %s is not initialized' % KEYSPACE)
-    print('Run python -m db.__init__ command')
+
+def get_session(init=False) -> Optional[Session]:
+    try:
+        _session.set_keyspace(KEYSPACE)
+    except InvalidRequest:
+        if init:
+            init_db()
+        else:
+            print('Key space %s is not initialized' % KEYSPACE)
+            print('Run init_db() command')
+            return None
+    return _session
 
 
 def init_db():
     # Create keyspace
-    session.execute("""
+    _session.execute("""
         CREATE KEYSPACE IF NOT EXISTS %s WITH REPLICATION = 
          {'class' : 'SimpleStrategy', 'replication_factor' : 1}
     """ % KEYSPACE)
 
-    session.set_keyspace(KEYSPACE)
+    _session.set_keyspace(KEYSPACE)
 
     # Denormalized storage of all sessions
-    session.execute("""
+    _session.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
             player_id UUID, 
             session_id UUID, 
@@ -38,7 +47,7 @@ def init_db():
 
     # Storage for complete sessions (We can receive complete sessions with sessions table, but
     #       we want to have it ordered by timestamp, so it can be done with another table)
-    session.execute("""
+    _session.execute("""
         CREATE TABLE IF NOT EXISTS complete_sessions (
             player_id UUID,
             session_id UUID,
@@ -48,8 +57,9 @@ def init_db():
         ) WITH CLUSTERING ORDER BY (ts DESC)
     """)
 
+
 def clean_db():
-    session.execute("""
+    _session.execute("""
         DROP KEYSPACE %s    
     """ % KEYSPACE)
 
