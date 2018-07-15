@@ -75,12 +75,11 @@ def test_load_events(client, players_and_sessions):
 
 @pytest.mark.run(order=1)
 def test_get_last_sessions(client):
-    print('get last sessions')
     resp = client.simulate_get('/last_hours_session_starts', params={'hours': LAST_HOURS})
     js = resp.json
 
     assert resp.status == falcon.HTTP_200
-    assert (len(js['AA']) + len(js['BB'])) == (LAST_HOURS - 1) * N_SESSIONS
+    assert len(js['AA']) + len(js['BB']) == (LAST_HOURS - 1) * N_SESSIONS
 
 @pytest.mark.run(order=1)
 def test_get_complete_sessions(client, players_and_sessions):
@@ -90,4 +89,4 @@ def test_get_complete_sessions(client, players_and_sessions):
         js = resp.json
         complete_sessions += len(js)
 
-    assert (N_PLAYERS * (N_SESSIONS - 2)) == complete_sessions
+    assert N_PLAYERS * (N_SESSIONS - 2) == complete_sessions

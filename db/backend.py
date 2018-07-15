@@ -41,13 +41,13 @@ class Backend:
             WHERE start > ? ALLOW FILTERING
         """)
 
-        self.insert_complete_start = session.prepare("""
-            INSERT INTO complete_sessions 
-            (player_id, session_id, ts, has_start) VALUES 
-            (?, ?, '', True)
+        self.select_complete_in_last_update = session.prepare("""
+            select player_id, session_id, finish from sessions
+            where has_start = true and has_end = true and 
+                  session_id = ? and player_id = ?  limit 1 allow filtering
         """)
 
-        self.insert_complete_end = session.prepare("""
+        self.insert_complete = session.prepare("""
             INSERT INTO complete_sessions
             (player_id, session_id, ts) VALUES 
             (?, ?, ?)
@@ -55,7 +55,7 @@ class Backend:
 
         self.select_last_complete_sessions = session.prepare("""
             SELECT session_id FROM complete_sessions 
-            where ts > '' and player_id = ? limit ? ALLOW FILTERING 
+            where player_id = ? limit ? ALLOW FILTERING 
         """)
 
     def save_batch(self, payload: (str or List[str])) -> int:
@@ -70,8 +70,9 @@ class Backend:
         if isinstance(payload, str):
             payload = payload.split(sep='\n')
 
-        batch_sessions, batch_completes = BatchStatement(), BatchStatement()
+        batch_sessions = BatchStatement()
 
+        pairs = []
         for js_str in payload:
             if len(js_str) == 0:
                 continue
@@ -80,15 +81,20 @@ class Backend:
             player_id = UUID(js['player_id'])
             ts = str2date(js['ts'])
 
+            pairs.append((session_id, player_id))
             if js['event'] == 'start':
                 batch_sessions.add(self.insert_start, (session_id, player_id, js['country'], ts))
-                batch_completes.add(self.insert_complete_start, (player_id, session_id))
             else:
                 batch_sessions.add(self.insert_end, (session_id, player_id, ts))
-                batch_completes.add(self.insert_complete_end, (player_id, session_id, ts))
 
         self.session.execute(batch_sessions)
+
+        batch_completes = BatchStatement()
+        for pair in pairs:
+            for row in self.session.execute(self.select_complete_in_last_update, pair):
+                batch_completes.add(self.insert_complete, (row.player_id, row.session_id, row.finish))
         self.session.execute(batch_completes)
+
         num_statements = len(batch_sessions) + len(batch_completes)
         return num_statements
 

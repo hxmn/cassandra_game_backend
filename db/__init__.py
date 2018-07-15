@@ -52,8 +52,7 @@ def init_db():
             player_id UUID,
             session_id UUID,
             ts TIMESTAMP,
-            has_start BOOLEAN,
-            PRIMARY KEY ((player_id), ts)
+            PRIMARY KEY ((player_id, session_id), ts)
         ) WITH CLUSTERING ORDER BY (ts DESC)
     """)
 
