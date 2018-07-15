@@ -9,5 +9,5 @@ RUN pip3 install -r requirements.txt
 RUN python -m db.__init__
 
 
-EXPOSE 8080
-CMD gunicorn -w 4 -b 0.0.0.0:8080 rest.app:app
+EXPOSE 18080
+CMD gunicorn -w 4 -b 0.0.0.0:18080 rest.app:app

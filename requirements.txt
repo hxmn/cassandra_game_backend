@@ -4,3 +4,4 @@ cassandra-driver==3.14.0
 
 # test deps
 pytest==3.6.3
+requests==2.19.1

@@ -1,7 +1,16 @@
 import falcon
 
+from db.backend import save_batch
+
+
 class LoadEvents(object):
-    pass
+    def on_post(self, req, res):
+        body = req.stream.read()
+        if not body:
+            raise falcon.HTTPBadRequest('Empty request body',
+                                        'A valid payload is required.')
+        payload = body.decode('utf-8')
+        save_batch(payload)
 
 class GetSessionsForLastHours(object):
     def on_get(self, req, res):
