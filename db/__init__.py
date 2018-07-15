@@ -25,17 +25,26 @@ def init_db():
     # Denormalized storage of all sessions
     session.execute("""
         CREATE TABLE IF NOT EXISTS sessions (
-            player_id uuid, 
-            session_id uuid, 
-            country text, 
-            start timestamp, 
-            finish timestamp,
-            has_start boolean,
-            has_end boolean,
+            player_id UUID, 
+            session_id UUID, 
+            country TEXT, 
+            start TIMESTAMP, 
+            finish TIMESTAMP,
+            has_start BOOLEAN,
+            has_end BOOLEAN,
             PRIMARY KEY (player_id, session_id)
         ) 
     """)
 
+    session.execute("""
+        CREATE TABLE IF NOT EXISTS complete_sessions (
+            player_id UUID,
+            session_id UUID,
+            ts TIMESTAMP,
+            has_start BOOLEAN,
+            PRIMARY KEY ((player_id), ts)
+        ) WITH CLUSTERING ORDER BY (ts DESC)
+    """)
 
 def clean_db():
     session.execute("""
