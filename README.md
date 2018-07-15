@@ -1,1 +1,1 @@
-# Home assignment about creating API REST to Cassandra with Python
+# Python REST service for saving game information into Cassndra
