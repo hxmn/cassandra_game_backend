@@ -21,13 +21,30 @@ insert_start = session.prepare("""
 
 insert_end = session.prepare("""
     INSERT INTO sessions  
-    (session_id, player_id, finish, has_end) values 
+    (session_id, player_id, finish, has_end) VALUES 
     (?, ?, ?, True)  
 """)
 
 select_session_starts_for_last_hours = session.prepare("""
     SELECT country, start FROM sessions
     WHERE start > ? ALLOW FILTERING
+""")
+
+insert_complete_start = session.prepare("""
+    INSERT INTO complete_sessions 
+    (player_id, session_id, ts, has_start) VALUES 
+    (?, ?, '', True)
+""")
+
+insert_complete_end = session.prepare("""
+    INSERT INTO complete_sessions
+    (player_id, session_id, ts) VALUES 
+    (?, ?, ?)
+""")
+
+select_last_complete_sessions = session.prepare("""
+    SELECT session_id FROM complete_sessions 
+    where ts > '' and player_id = ? limit ? ALLOW FILTERING 
 """)
 
 
@@ -43,7 +60,7 @@ def save_batch(payload: (str or List[str])) -> int:
     if isinstance(payload, str):
         payload = payload.split(sep='\n')
 
-    batch_sessions = BatchStatement()
+    batch_sessions, batch_completes = BatchStatement(), BatchStatement()
 
     for js_str in payload:
         js = json.loads(js_str)
@@ -53,20 +70,30 @@ def save_batch(payload: (str or List[str])) -> int:
 
         if js['event'] == 'start':
             batch_sessions.add(insert_start, (session_id, player_id, js['country'], ts))
+            batch_completes.add(insert_complete_start, (player_id, session_id))
         else:
             batch_sessions.add(insert_end, (session_id, player_id, ts))
+            batch_completes.add(insert_complete_end, (player_id, session_id, ts))
 
     session.execute(batch_sessions)
-    return len(batch_sessions)
+    session.execute(batch_completes)
+    num_statements = len(batch_sessions) + len(batch_completes)
+    return num_statements
 
 
 def session_starts_for_last_hours(hours: int) -> dict:
     from_date = NOW - timedelta(hours=hours)
     result = {}
 
-    rows = session.execute(select_session_starts_for_last_hours.bind((from_date,)))
+    rows = session.execute(select_session_starts_for_last_hours, (from_date,))
     for row in rows:
         if row.country not in result.keys():
             result[row.country] = []
         result[row.country].append(row.start.strftime(RFC3339_NO_FRACTION_NO_ZULU))
     return result
+
+
+def last_complete_sessions(player_id: str, num_sessions=20) -> List[str]:
+    rows = session.execute(select_last_complete_sessions, (player_id, num_sessions))
+    sessions = [row.session_id for row in rows]
+    return sessions

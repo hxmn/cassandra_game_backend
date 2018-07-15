@@ -36,6 +36,8 @@ def init_db():
         ) 
     """)
 
+    # Storage for complete sessions (We can receive complete sessions with sessions table, but
+    #       we want to have it ordered by timestamp, so it can be done with another table)
     session.execute("""
         CREATE TABLE IF NOT EXISTS complete_sessions (
             player_id UUID,

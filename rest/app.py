@@ -2,7 +2,7 @@ from wsgiref import simple_server
 
 import falcon
 
-from db.backend import save_batch, session_starts_for_last_hours
+from db.backend import save_batch, session_starts_for_last_hours, last_complete_sessions
 
 
 class LoadEvents(object):
@@ -28,8 +28,10 @@ class GetSessionStartsForLastHours(object):
 
 class GetLastCompleteSessionsByPlayer(object):
     def on_get(self, req, res):
+        player_id = req.params['player_id']
+        sessions = last_complete_sessions(player_id)
+        res.body = falcon.json.dumps(sessions)
         res.status = falcon.HTTP_200
-        res.body = 'last complete sessions'
 
 
 app = falcon.API()
