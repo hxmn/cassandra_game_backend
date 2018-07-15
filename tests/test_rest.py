@@ -11,5 +11,5 @@ def client():
 
 
 def test_get_last_sessions(client):
-    resp = client.simulate_get('/last_hours_sessions')
+    resp = client.simulate_get('/last_hours_session_starts', params={'hours': 3})
     assert resp.status == falcon.HTTP_200

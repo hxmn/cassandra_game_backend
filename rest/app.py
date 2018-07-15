@@ -1,6 +1,8 @@
+from wsgiref import simple_server
+
 import falcon
 
-from db.backend import save_batch
+from db.backend import save_batch, session_starts_for_last_hours
 
 
 class LoadEvents(object):
@@ -10,19 +12,31 @@ class LoadEvents(object):
             raise falcon.HTTPBadRequest('Empty request body',
                                         'A valid payload is required.')
         payload = body.decode('utf-8')
-        save_batch(payload)
+        num_of_statements = save_batch(payload)
 
-class GetSessionsForLastHours(object):
-    def on_get(self, req, res):
+        res.body = f'{num_of_statements} statements are executed'
         res.status = falcon.HTTP_200
-        res.body = 'last sessions'
+
+
+class GetSessionStartsForLastHours(object):
+    def on_get(self, req, res):
+        hours = int(req.params['hours'])
+        starts_by_country = session_starts_for_last_hours(hours)
+        res.body = falcon.json.dumps(starts_by_country)
+        res.status = falcon.HTTP_200
+
 
 class GetLastCompleteSessionsByPlayer(object):
     def on_get(self, req, res):
         res.status = falcon.HTTP_200
         res.body = 'last complete sessions'
 
+
 app = falcon.API()
 app.add_route('/load_events', LoadEvents())
-app.add_route('/last_hours_sessions', GetSessionsForLastHours())
+app.add_route('/last_hours_session_starts', GetSessionStartsForLastHours())
 app.add_route('/last_complete_sessions', GetLastCompleteSessionsByPlayer())
+
+if __name__ == '__main__':
+    httpd = simple_server.make_server('127.0.0.1', 18080, app)
+    httpd.serve_forever()

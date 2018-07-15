@@ -1,5 +1,8 @@
 import requests as req
 
+# Integration tests
+
+URL = "http://localhost:18080"
 
 def test_batch_loading():
     payload = """{"player_id": "d6313e1fb7d247a6a034e2aadc30ab3f", "country": "PK", "event": "start", "session_id": "674606b1-2270-4285-928f-eef4a6b90a60", "ts": "2016-11-22T20:40:50"}
@@ -13,5 +16,12 @@ def test_batch_loading():
 {"player_id": "e59f1fa31e144fd8b3634f397492126a", "event": "end", "session_id": "dd223ea6-0e6b-4dd2-bc1d-b2decd43aabf", "ts": "2016-11-13T00:35:30"}
 {"player_id": "fd8a1e9fff25471dad3e8ab951c90d60", "event": "end", "session_id": "3015bf71-4b28-4c91-a253-b48607170a1e", "ts": "2016-11-21T01:18:57"}"""
 
-    resp = req.post("http://localhost:18080/load_events", data=payload)
+
+    resp = req.post("%s/load_events" % URL, data=payload)
+    print(resp.text)
     assert resp.status_code == 200
+
+def test_last_sessions_starts():
+    resp = req.get("%s/last_hours_session_starts?hours=200000" % URL)
+    js = resp.json()
+    print(js)
