@@ -1,10 +1,11 @@
 import asyncio
 from typing import List
+
 import requests as req
 
 # Our REST API endpoint for loading data
 URL = 'http://localhost:18080/load_events'
-N = 50 # batch size
+N = 50  # batch size
 
 
 def load(batch: List[str]) -> None:

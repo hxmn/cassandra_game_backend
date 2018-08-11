@@ -3,8 +3,8 @@ import random
 import uuid
 from datetime import datetime, timedelta
 
-import pytest
 import falcon
+import pytest
 from falcon import testing
 
 from db import clean_db, init_db, backend
@@ -15,10 +15,12 @@ N_SESSIONS = 25
 COUNTRIES = ["AA", "BB"]
 LAST_HOURS = 5
 
+
 # Create keyspace
 def setup_module():
     init_db()
     backend.NOW = datetime.now()
+
 
 # Destroy keyspace after all tests done
 def teardown_module():
@@ -83,6 +85,7 @@ def test_get_last_sessions(client):
     assert resp.status == falcon.HTTP_200
     assert len(js['AA']) + len(js['BB']) == (LAST_HOURS - 1) * N_PLAYERS
 
+
 @pytest.mark.run(order=1)
 def test_get_complete_sessions(client, players_and_sessions):
     complete_sessions = 0
@@ -92,5 +95,5 @@ def test_get_complete_sessions(client, players_and_sessions):
         js = resp.json
         complete_sessions += len(js)
 
-    sessions = 22 if N_SESSIONS > 22 else N_SESSIONS # we are getting only 20 complete sessions
+    sessions = 22 if N_SESSIONS > 22 else N_SESSIONS  # we are getting only 20 complete sessions
     assert N_PLAYERS * (sessions - 2) == complete_sessions

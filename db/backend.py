@@ -1,11 +1,10 @@
+import json
 from datetime import datetime, timedelta
 from typing import List
 
 from cassandra.cluster import Session
 from cassandra.cqltypes import UUID
 from cassandra.query import BatchStatement
-
-import json
 
 RFC3339_NO_FRACTION_NO_ZULU = '%Y-%m-%dT%H:%M:%S'
 

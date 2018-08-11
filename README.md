@@ -1,4 +1,4 @@
-# Python REST service for saving game information into Cassndra
+# Python REST service for saving game statistics into Apache Cassandra
 
 ## Installation and Running
 Docker compose is used to configure environment and run application. 
